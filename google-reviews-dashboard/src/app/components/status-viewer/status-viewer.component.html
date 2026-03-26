@@ -1,0 +1,71 @@
+<div class="card">
+  <h2>Check Sync Status</h2>
+
+  <div class="search-bar">
+    <input type="text" [(ngModel)]="feedbackId" placeholder="Enter Feedback ID (e.g. fb_001)"
+           (keyup.enter)="onSearch()" />
+    <button (click)="onSearch()" [disabled]="loading || !feedbackId.trim()" class="btn btn-secondary">
+      Search
+    </button>
+  </div>
+
+  @if (loading) {
+    <app-loading-spinner message="Fetching status..."></app-loading-spinner>
+  }
+
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (result) {
+    <div class="status-card">
+      <div class="status-header">
+        <span class="feedback-id">{{ result.feedbackId }}</span>
+        <app-status-badge [status]="result.status"></app-status-badge>
+      </div>
+
+      <div class="status-details">
+        <div class="detail-row">
+          <span class="label">Restaurant</span>
+          <span class="value">{{ result.restaurantId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Provider</span>
+          <span class="value">{{ result.provider }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Reason Code</span>
+          <span class="value">{{ result.reasonCode }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Attempt Count</span>
+          <span class="value">{{ result.attemptCount }}</span>
+        </div>
+        @if (result.lastAttemptAt) {
+          <div class="detail-row">
+            <span class="label">Last Attempt</span>
+            <span class="value">{{ result.lastAttemptAt | date:'medium' }}</span>
+          </div>
+        }
+      </div>
+
+      @if (result.fallback) {
+        <div class="fallback-section">
+          <h3>Fallback Info</h3>
+          <div class="detail-row">
+            <span class="label">Prompt Issued</span>
+            <span class="value">{{ result.fallback.promptIssued ? 'Yes' : 'No' }}</span>
+          </div>
+          @if (result.fallback.promptUrl) {
+            <div class="detail-row">
+              <span class="label">Review URL</span>
+              <a [href]="result.fallback.promptUrl" target="_blank" class="link">
+                {{ result.fallback.promptUrl }}
+              </a>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

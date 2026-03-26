@@ -1,0 +1,53 @@
+<div class="card">
+  <div class="card-header">
+    <h2>Sync History</h2>
+    <button (click)="loadRecords()" [disabled]="loading" class="btn btn-secondary btn-sm">
+      Refresh
+    </button>
+  </div>
+
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (loading) {
+    <app-loading-spinner message="Loading records..."></app-loading-spinner>
+  }
+
+  @if (!loading && records.length === 0) {
+    <div class="empty-state">
+      <p>No sync records yet. Use the Sync form to create one.</p>
+    </div>
+  }
+
+  @if (records.length > 0) {
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Feedback ID</th>
+            <th>Restaurant</th>
+            <th>Status</th>
+            <th>Reason</th>
+            <th>Attempts</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of records; track record.feedbackId) {
+            <tr>
+              <td class="cell-id">{{ record.feedbackId }}</td>
+              <td>{{ record.restaurantId }}</td>
+              <td>
+                <app-status-badge [status]="record.status" [showIcon]="true"></app-status-badge>
+              </td>
+              <td class="cell-reason">{{ record.reasonCode }}</td>
+              <td class="cell-center">{{ record.attemptCount }}</td>
+              <td class="cell-time">{{ record.lastAttemptAt | date:'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

@@ -1,0 +1,51 @@
+<div class="dashboard">
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">G</span>
+        <div>
+          <h1>Google Reviews Sync</h1>
+          <p class="subtitle">Integration Dashboard</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span class="status-dot"></span>
+        <span>API Connected</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="main-panel">
+      <nav class="tabs">
+        <button class="tab" [class.active]="activeTab === 'sync'" (click)="activeTab = 'sync'">
+          <span class="tab-icon">+</span> Sync Feedback
+        </button>
+        <button class="tab" [class.active]="activeTab === 'status'" (click)="activeTab = 'status'">
+          <span class="tab-icon">?</span> Check Status
+        </button>
+        <button class="tab" [class.active]="activeTab === 'retry'" (click)="activeTab = 'retry'">
+          <span class="tab-icon">&#8635;</span> Retry Failed
+        </button>
+      </nav>
+
+      <div class="tab-content">
+        @switch (activeTab) {
+          @case ('sync') {
+            <app-sync-form (synced)="onSynced()"></app-sync-form>
+          }
+          @case ('status') {
+            <app-status-viewer></app-status-viewer>
+          }
+          @case ('retry') {
+            <app-retry-panel></app-retry-panel>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="side-panel">
+      <app-reviews-list [refreshTick]="refreshTick()"></app-reviews-list>
+    </div>
+  </div>
+</div>

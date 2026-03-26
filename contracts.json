@@ -1,0 +1,475 @@
+{
+  "meta": {
+    "assessment": "Senior Integrations Engineer - Google Reviews Sync Attempt",
+    "version": "1.0.0",
+    "generatedOn": "2026-03-25",
+    "notes": [
+      "Contracts mirror current feedback flow shape.",
+      "Candidate should build from these contracts, not redesign base API.",
+      "Google sync is attempt-based with required fallback handling."
+    ]
+  },
+  "enums": {
+    "syncStatus": [
+      "SYNCED",
+      "BLOCKED_BY_PROVIDER_POLICY",
+      "FAILED_RETRYABLE",
+      "FAILED_PERMANENT",
+      "SKIPPED_NOT_ELIGIBLE"
+    ],
+    "reasonCode": [
+      "ELIGIBLE_AND_SYNCED",
+      "CREATE_REVIEW_NOT_SUPPORTED",
+      "PROVIDER_TIMEOUT",
+      "PROVIDER_RATE_LIMIT",
+      "PROVIDER_BAD_REQUEST",
+      "AUTH_INVALID",
+      "NOT_ELIGIBLE_LOW_RATING",
+      "NOT_ELIGIBLE_NEGATIVE_FEEDBACK",
+      "NOT_ELIGIBLE_GOOGLE_DISABLED",
+      "DUPLICATE_EVENT_IGNORED",
+      "UNKNOWN_ERROR"
+    ]
+  },
+  "contracts": {
+    "feedbackSubmit": {
+      "method": "POST",
+      "path": "/api/SendFeedBack",
+      "requestSchema": {
+        "type": "object",
+        "required": [
+          "restaurantId",
+          "user",
+          "rating",
+          "isFeedbackNegative"
+        ],
+        "properties": {
+          "restaurantId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "user": {
+            "type": "string",
+            "minLength": 1
+          },
+          "msg": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "tablenb": {
+            "type": "string"
+          },
+          "tablename": {
+            "type": "string"
+          },
+          "tablelabel": {
+            "type": "string"
+          },
+          "legend": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phoneNb": {
+            "type": "string"
+          },
+          "isCustomFeedback": {
+            "type": "boolean"
+          },
+          "isSmileyFeedback": {
+            "type": "boolean"
+          },
+          "isFeedbackNegative": {
+            "type": "boolean"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "customFeedback": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "redirectionComment": {
+            "type": "string"
+          },
+          "isRingNBringFeedback": {
+            "type": "boolean"
+          },
+          "restoinfo": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "sendFeedbacktoAdmin": {
+                "type": "boolean"
+              },
+              "googleReviewUrl": {
+                "type": "string"
+              },
+              "googlePlaceId": {
+                "type": "string"
+              },
+              "googleSyncEnabled": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": [
+          "feedbackId"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "googleSyncAttempt": {
+      "method": "POST",
+      "path": "/integrations/google-reviews/sync",
+      "requestSchema": {
+        "type": "object",
+        "required": [
+          "feedbackId",
+          "restaurantId",
+          "rating",
+          "isFeedbackNegative",
+          "timestamp"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "restaurantId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rating": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "isFeedbackNegative": {
+            "type": "boolean"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "restoinfo": {
+            "type": "object",
+            "properties": {
+              "googleReviewUrl": {
+                "type": "string"
+              },
+              "googlePlaceId": {
+                "type": "string"
+              },
+              "googleSyncEnabled": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": true
+          },
+          "simulateMode": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "FORCE_SYNCED",
+              "FORCE_POLICY_BLOCK",
+              "FORCE_TIMEOUT",
+              "FORCE_RATE_LIMIT",
+              "FORCE_PERMANENT_FAILURE"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": [
+          "feedbackId",
+          "restaurantId",
+          "provider",
+          "status",
+          "attemptCount",
+          "lastAttemptAt",
+          "reasonCode"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string"
+          },
+          "restaurantId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string",
+            "const": "google_reviews"
+          },
+          "status": {
+            "type": "string"
+          },
+          "attemptCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "lastAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reasonCode": {
+            "type": "string"
+          },
+          "fallback": {
+            "type": "object",
+            "properties": {
+              "promptUrl": {
+                "type": "string"
+              },
+              "promptIssued": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "promptIssued"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "googleSyncStatus": {
+      "method": "GET",
+      "path": "/integrations/google-reviews/status/:feedbackId",
+      "responseSchema": {
+        "type": "object",
+        "required": [
+          "feedbackId",
+          "provider",
+          "status",
+          "attemptCount",
+          "reasonCode"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string"
+          },
+          "restaurantId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string",
+            "const": "google_reviews"
+          },
+          "status": {
+            "type": "string"
+          },
+          "attemptCount": {
+            "type": "integer"
+          },
+          "lastAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reasonCode": {
+            "type": "string"
+          },
+          "fallback": {
+            "type": "object"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "googleSyncRetry": {
+      "method": "POST",
+      "path": "/integrations/google-reviews/retry/:feedbackId",
+      "requestSchema": {
+        "type": "object",
+        "properties": {
+          "requestedBy": {
+            "type": "string"
+          },
+          "force": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "responseSchema": {
+        "type": "object",
+        "required": [
+          "feedbackId",
+          "retryAccepted"
+        ],
+        "properties": {
+          "feedbackId": {
+            "type": "string"
+          },
+          "retryAccepted": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "syncStatusSchema": {
+    "type": "object",
+    "required": [
+      "feedbackId",
+      "restaurantId",
+      "provider",
+      "status",
+      "attemptCount",
+      "reasonCode",
+      "createdAt",
+      "updatedAt"
+    ],
+    "properties": {
+      "feedbackId": {
+        "type": "string"
+      },
+      "restaurantId": {
+        "type": "string"
+      },
+      "provider": {
+        "type": "string",
+        "const": "google_reviews"
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "SYNCED",
+          "BLOCKED_BY_PROVIDER_POLICY",
+          "FAILED_RETRYABLE",
+          "FAILED_PERMANENT",
+          "SKIPPED_NOT_ELIGIBLE"
+        ]
+      },
+      "attemptCount": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "lastAttemptAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "reasonCode": {
+        "type": "string"
+      },
+      "lastError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isRetryable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "fallback": {
+        "type": "object",
+        "properties": {
+          "promptUrl": {
+            "type": "string"
+          },
+          "promptIssued": {
+            "type": "boolean"
+          },
+          "promptIssuedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
+      },
+      "idempotency": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "firstProcessedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "duplicateCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      },
+      "createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "additionalProperties": true
+  },
+  "businessRules": {
+    "eligibility": {
+      "minimumRatingToAttemptGoogleSync": 4,
+      "skipWhenIsFeedbackNegative": true,
+      "respectRestaurantGoogleSyncEnabled": true
+    },
+    "retryPolicy": {
+      "maxAttempts": 3,
+      "initialDelayMs": 2000,
+      "backoffMultiplier": 2,
+      "maxDelayMs": 30000
+    },
+    "idempotency": {
+      "keyTemplate": "google_reviews:${feedbackId}",
+      "duplicateHandling": "RETURN_EXISTING_STATUS"
+    }
+  }
+}
+

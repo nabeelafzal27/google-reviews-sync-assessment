@@ -1,0 +1,82 @@
+.retry-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.retry-bar input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.retry-bar input[type="text"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.retry-result {
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.result-accepted {
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+}
+
+.result-rejected {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.result-icon {
+  font-size: 18px;
+}
+
+.result-accepted .result-icon {
+  color: #065f46;
+}
+
+.result-rejected .result-icon {
+  color: #991b1b;
+}
+
+.result-status {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.result-accepted .result-status {
+  color: #065f46;
+}
+
+.result-rejected .result-status {
+  color: #991b1b;
+}
+
+.result-message {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+}

@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "description": "Sample events for Google Reviews sync attempt assessment",
+    "usage": [
+      "Use these as seed test payloads.",
+      "simulateMode is for deterministic local testing.",
+      "Expected outcomes are reference behavior for evaluator checks."
+    ]
+  },
+  "cases": [
+    {
+      "id": "case_01_positive_synced",
+      "description": "Eligible positive feedback; provider sync succeeds.",
+      "event": {
+        "feedbackId": "fb_001",
+        "restaurantId": "resto_123",
+        "user": "user_001",
+        "msg": "Amazing service and food",
+        "rating": 5,
+        "isFeedbackNegative": false,
+        "isSmileyFeedback": true,
+        "timestamp": "2026-03-25T12:00:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "name": "Restaurant A",
+          "googleSyncEnabled": true,
+          "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+        },
+        "simulateMode": "FORCE_SYNCED"
+      },
+      "expected": {
+        "status": "SYNCED",
+        "reasonCode": "ELIGIBLE_AND_SYNCED",
+        "attemptCountMin": 1,
+        "fallbackPromptIssued": false
+      }
+    },
+    {
+      "id": "case_02_positive_policy_blocked",
+      "description": "Eligible feedback but provider policy blocks direct create.",
+      "event": {
+        "feedbackId": "fb_002",
+        "restaurantId": "resto_123",
+        "user": "user_002",
+        "msg": "Great staff",
+        "rating": 5,
+        "isFeedbackNegative": false,
+        "timestamp": "2026-03-25T12:05:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "googleSyncEnabled": true,
+          "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+        },
+        "simulateMode": "FORCE_POLICY_BLOCK"
+      },
+      "expected": {
+        "status": "BLOCKED_BY_PROVIDER_POLICY",
+        "reasonCode": "CREATE_REVIEW_NOT_SUPPORTED",
+        "attemptCountMin": 1,
+        "fallbackPromptIssued": true
+      }
+    },
+    {
+      "id": "case_03_negative_skipped",
+      "description": "Negative feedback should not trigger Google sync attempt.",
+      "event": {
+        "feedbackId": "fb_003",
+        "restaurantId": "resto_123",
+        "user": "user_003",
+        "msg": "Very bad experience",
+        "rating": 1,
+        "isFeedbackNegative": true,
+        "timestamp": "2026-03-25T12:10:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "googleSyncEnabled": true,
+          "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+        },
+        "simulateMode": "NONE"
+      },
+      "expected": {
+        "status": "SKIPPED_NOT_ELIGIBLE",
+        "reasonCode": "NOT_ELIGIBLE_NEGATIVE_FEEDBACK",
+        "attemptCountMax": 0,
+        "fallbackPromptIssued": false
+      }
+    },
+    {
+      "id": "case_04_low_rating_skipped",
+      "description": "Low rating below threshold should be skipped.",
+      "event": {
+        "feedbackId": "fb_004",
+        "restaurantId": "resto_123",
+        "user": "user_004",
+        "msg": "It was okay",
+        "rating": 2,
+        "isFeedbackNegative": false,
+        "timestamp": "2026-03-25T12:15:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "googleSyncEnabled": true,
+          "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+        },
+        "simulateMode": "NONE"
+      },
+      "expected": {
+        "status": "SKIPPED_NOT_ELIGIBLE",
+        "reasonCode": "NOT_ELIGIBLE_LOW_RATING",
+        "attemptCountMax": 0,
+        "fallbackPromptIssued": false
+      }
+    },
+    {
+      "id": "case_05_retryable_timeout",
+      "description": "Eligible event but provider times out; should be retryable.",
+      "event": {
+        "feedbackId": "fb_005",
+        "restaurantId": "resto_123",
+        "user": "user_005",
+        "msg": "Loved it",
+        "rating": 5,
+        "isFeedbackNegative": false,
+        "timestamp": "2026-03-25T12:20:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "googleSyncEnabled": true,
+          "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+        },
+        "simulateMode": "FORCE_TIMEOUT"
+      },
+      "expected": {
+        "status": "FAILED_RETRYABLE",
+        "reasonCode": "PROVIDER_TIMEOUT",
+        "attemptCountMin": 1,
+        "fallbackPromptIssued": false
+      }
+    },
+    {
+      "id": "case_06_duplicate_event",
+      "description": "Second processing of same feedbackId should not duplicate side effects.",
+      "eventSequence": [
+        {
+          "feedbackId": "fb_006",
+          "restaurantId": "resto_123",
+          "user": "user_006",
+          "msg": "Great ambiance",
+          "rating": 5,
+          "isFeedbackNegative": false,
+          "timestamp": "2026-03-25T12:25:00.000Z",
+          "restoinfo": {
+            "id": "resto_123",
+            "googleSyncEnabled": true,
+            "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+          },
+          "simulateMode": "FORCE_SYNCED"
+        },
+        {
+          "feedbackId": "fb_006",
+          "restaurantId": "resto_123",
+          "user": "user_006",
+          "msg": "Great ambiance",
+          "rating": 5,
+          "isFeedbackNegative": false,
+          "timestamp": "2026-03-25T12:26:00.000Z",
+          "restoinfo": {
+            "id": "resto_123",
+            "googleSyncEnabled": true,
+            "googleReviewUrl": "https://g.page/r/restaurant-a/review"
+          },
+          "simulateMode": "FORCE_SYNCED"
+        }
+      ],
+      "expected": {
+        "finalStatus": "SYNCED",
+        "providerCallCountMax": 1,
+        "duplicateHandling": "RETURN_EXISTING_STATUS_OR_MARK_DUPLICATE"
+      }
+    },
+    {
+      "id": "case_07_google_disabled",
+      "description": "Restaurant-level flag disables Google sync attempt.",
+      "event": {
+        "feedbackId": "fb_007",
+        "restaurantId": "resto_999",
+        "user": "user_007",
+        "msg": "Excellent service",
+        "rating": 5,
+        "isFeedbackNegative": false,
+        "timestamp": "2026-03-25T12:30:00.000Z",
+        "restoinfo": {
+          "id": "resto_999",
+          "googleSyncEnabled": false,
+          "googleReviewUrl": "https://g.page/r/restaurant-b/review"
+        },
+        "simulateMode": "NONE"
+      },
+      "expected": {
+        "status": "SKIPPED_NOT_ELIGIBLE",
+        "reasonCode": "NOT_ELIGIBLE_GOOGLE_DISABLED"
+      }
+    },
+    {
+      "id": "case_08_malformed_missing_restaurant",
+      "description": "Invalid payload should fail validation before sync logic.",
+      "event": {
+        "feedbackId": "fb_008",
+        "user": "user_008",
+        "msg": "Great",
+        "rating": 4,
+        "isFeedbackNegative": false,
+        "timestamp": "2026-03-25T12:35:00.000Z",
+        "restoinfo": {
+          "id": "resto_123",
+          "googleSyncEnabled": true
+        },
+        "simulateMode": "NONE"
+      },
+      "expected": {
+        "httpStatus": 400,
+        "errorContains": "restaurantId"
+      }
+    }
+  ]
+}
+

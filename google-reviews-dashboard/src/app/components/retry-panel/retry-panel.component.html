@@ -1,0 +1,34 @@
+<div class="card">
+  <h2>Retry Failed Sync</h2>
+
+  <div class="retry-bar">
+    <input type="text" [(ngModel)]="feedbackId"
+           placeholder="Enter Feedback ID to retry (e.g. fb_005)"
+           (keyup.enter)="onRetry()" />
+    <label class="checkbox-label">
+      <input type="checkbox" [(ngModel)]="force" />
+      Force
+    </label>
+    <button (click)="onRetry()" [disabled]="loading || !feedbackId.trim()" class="btn btn-warning">
+      Retry Sync
+    </button>
+  </div>
+
+  @if (loading) {
+    <app-loading-spinner message="Retrying..."></app-loading-spinner>
+  }
+
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (result) {
+    <div class="retry-result" [ngClass]="result.retryAccepted ? 'result-accepted' : 'result-rejected'">
+      <div class="result-header">
+        <span class="result-icon">{{ result.retryAccepted ? '&#10004;' : '&#10006;' }}</span>
+        <span class="result-status">{{ result.retryAccepted ? 'Retry Accepted' : 'Retry Rejected' }}</span>
+      </div>
+      <p class="result-message">{{ result.message }}</p>
+    </div>
+  }
+</div>

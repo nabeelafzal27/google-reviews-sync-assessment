@@ -1,0 +1,114 @@
+<div class="card">
+  <h2>Sync Feedback to Google Reviews</h2>
+
+  <form #syncForm="ngForm" (ngSubmit)="syncForm.valid && onSubmit()" class="form">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="feedbackId">Feedback ID <span class="required">*</span></label>
+        <input id="feedbackId" type="text" [(ngModel)]="feedbackId" name="feedbackId"
+               #feedbackIdField="ngModel" placeholder="e.g. fb_001"
+               required minlength="1" />
+        @if (feedbackIdField.invalid && feedbackIdField.touched) {
+          <span class="field-error">Feedback ID is required</span>
+        }
+      </div>
+      <div class="form-group">
+        <label for="restaurantId">Restaurant ID <span class="required">*</span></label>
+        <input id="restaurantId" type="text" [(ngModel)]="restaurantId" name="restaurantId"
+               #restaurantIdField="ngModel" placeholder="e.g. resto_123"
+               required minlength="1" />
+        @if (restaurantIdField.invalid && restaurantIdField.touched) {
+          <span class="field-error">Restaurant ID is required</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="rating">Rating (0-5) <span class="required">*</span></label>
+        <input id="rating" type="number" [(ngModel)]="rating" name="rating"
+               #ratingField="ngModel"
+               required min="0" max="5" step="1" />
+        @if (ratingField.invalid && ratingField.touched) {
+          <span class="field-error">Rating must be between 0 and 5</span>
+        }
+      </div>
+      <div class="form-group">
+        <label for="simulateMode">Simulate Mode</label>
+        <select id="simulateMode" [(ngModel)]="simulateMode" name="simulateMode">
+          @for (mode of simulateModes; track mode.value) {
+            <option [value]="mode.value">{{ mode.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="googleReviewUrl">Google Review URL</label>
+        <input id="googleReviewUrl" type="url" [(ngModel)]="googleReviewUrl"
+               #urlField="ngModel" name="googleReviewUrl"
+               placeholder="https://g.page/r/..." />
+        @if (urlField.invalid && urlField.touched) {
+          <span class="field-error">Please enter a valid URL</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row checkboxes">
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="isFeedbackNegative" name="isFeedbackNegative" />
+        Negative Feedback
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" [(ngModel)]="googleSyncEnabled" name="googleSyncEnabled" />
+        Google Sync Enabled
+      </label>
+    </div>
+
+    <button type="submit" [disabled]="loading || syncForm.invalid" class="btn btn-primary">
+      @if (loading) {
+        <app-loading-spinner size="sm"></app-loading-spinner>
+      } @else {
+        Sync to Google Reviews
+      }
+    </button>
+  </form>
+
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  @if (result && result.duplicate) {
+    <div class="alert alert-duplicate">
+      <div class="duplicate-header">
+        <span class="duplicate-icon">&#128260;</span>
+        <strong>Duplicate Event Detected</strong>
+      </div>
+      <p>Feedback <strong>{{ result.feedbackId }}</strong> was already processed.</p>
+      <small>
+        Existing status: <strong>{{ result.status }}</strong> |
+        Reason: {{ result.reasonCode }} |
+        Original attempts: {{ result.attemptCount }}
+      </small>
+    </div>
+  }
+
+  @if (result && !result.duplicate) {
+    <div class="alert" [ngClass]="{
+      'alert-success': result.status === 'SYNCED',
+      'alert-warning': result.status === 'BLOCKED_BY_PROVIDER_POLICY' || result.status === 'SKIPPED_NOT_ELIGIBLE',
+      'alert-error': result.status === 'FAILED_PERMANENT',
+      'alert-info': result.status === 'FAILED_RETRYABLE'
+    }">
+      <strong>{{ result.feedbackId }}</strong> &mdash; {{ result.status }}
+      <br />
+      <small>Reason: {{ result.reasonCode }} | Attempts: {{ result.attemptCount }}</small>
+      @if (result.fallback && result.fallback.promptUrl) {
+        <div class="fallback-link">
+          Fallback: <a [href]="result.fallback.promptUrl" target="_blank">{{ result.fallback.promptUrl }}</a>
+        </div>
+      }
+    </div>
+  }
+</div>
