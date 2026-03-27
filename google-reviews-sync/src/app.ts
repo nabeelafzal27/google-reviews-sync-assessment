@@ -36,7 +36,10 @@ export function createApp(): express.Application {
           'and fallback review-prompt paths.',
       },
       servers: [
-        { url: 'http://localhost:3000', description: 'Local development' },
+        ...(process.env.RENDER_EXTERNAL_URL
+          ? [{ url: process.env.RENDER_EXTERNAL_URL, description: 'Production' }]
+          : []),
+        { url: `http://localhost:${process.env.PORT || 3000}`, description: 'Local development' },
       ],
     },
     apis: [routeGlob],
